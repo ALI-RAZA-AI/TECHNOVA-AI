@@ -9,6 +9,8 @@ from technova.logic import (
     check_compatibility,
     compare_specs,
     build_plan,
+    load_gaming_laptops,
+    recommend_gaming_laptops,
 )
 
 st.set_page_config(
@@ -136,7 +138,7 @@ st.markdown(css, unsafe_allow_html=True)
 catalog = load_catalog()
 pages = [
     "Overview", "Gaming PC Builder", "Workstation Planner",
-    "Hardware Explorer", "Compatibility Lab", "MCP Tools & Demo",
+    "Hardware Explorer", "Gaming Laptop Intelligence", "Compatibility Lab", "MCP Tools & Demo",
 ]
 with st.sidebar:
     st.divider()
@@ -282,6 +284,109 @@ elif page == "Hardware Explorer":
         with st.expander(item["brand"] + " · " + item["name"]):
             st.metric("Sample price", money(item["sample_price_pkr"]))
             st.json(item["specs"])
+
+
+# ----------------------------- Gaming laptop intelligence -------------------
+elif page == "Gaming Laptop Intelligence":
+    hero("Gaming Laptop Intelligence", "Explore 346 cleaned laptop records, discover price/specification patterns and get transparent shortlist recommendations.")
+    try:
+        laptops = load_gaming_laptops()
+    except Exception as exc:
+        st.error(f"Could not load the bundled laptop dataset: {exc}")
+        st.stop()
+
+    st.caption("Dataset source: uploaded cleaned gaming-laptop CSV · 346 records · Prices shown in Indian rupees (INR ₹), as supplied. Not live retailer prices.")
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Laptop records", f"{len(laptops):,}")
+    m2.metric("Average listed price", f"₹{laptops['price'].mean():,.0f}")
+    m3.metric("Median spec score", f"{laptops['specs_score'].median():.0f}/100")
+    m4.metric("GPU profiles", f"{laptops['graphics_card'].nunique():,}")
+
+    tab1, tab2, tab3 = st.tabs(["Explore & analyse", "Smart recommendations", "Compare laptops"])
+    with tab1:
+        st.subheader("Filter the laptop catalogue")
+        f1, f2, f3, f4 = st.columns(4)
+        with f1:
+            max_price = st.slider("Maximum price (INR ₹)", int(laptops.price.min()), int(laptops.price.max()), int(laptops.price.max()), step=5000)
+        with f2:
+            gpu_options = ["All"] + sorted(laptops.graphics_card.dropna().unique().tolist())
+            gpu_filter = st.selectbox("Graphics card", gpu_options)
+        with f3:
+            ram_filter = st.selectbox("Minimum RAM", [0, 8, 16, 24, 32, 64], index=2, format_func=lambda x: "Any" if x == 0 else f"{x} GB")
+        with f4:
+            score_filter = st.slider("Minimum spec score", 0, 100, 0)
+        search_text = st.text_input("Search model, processor or GPU", placeholder="e.g. Lenovo LOQ, Ryzen, RTX 4060")
+        filtered = laptops[laptops.price <= max_price].copy()
+        filtered = filtered[filtered["ram(GB)"] >= ram_filter]
+        filtered = filtered[filtered.specs_score >= score_filter]
+        if gpu_filter != "All":
+            filtered = filtered[filtered.graphics_card == gpu_filter]
+        if search_text.strip():
+            mask = (
+                filtered["name"].str.contains(search_text, case=False, na=False) |
+                filtered["processor"].str.contains(search_text, case=False, na=False) |
+                filtered["graphics_card"].str.contains(search_text, case=False, na=False)
+            )
+            filtered = filtered[mask]
+        st.caption(f"{len(filtered)} laptops match your filters.")
+        display_cols = ["name","price","specs_score","processor","graphics_card","VRAM(GB)","ram(GB)","ram_version","storage_size","display_size","display_resolution"]
+        st.dataframe(filtered[display_cols].sort_values("specs_score", ascending=False), width="stretch", hide_index=True)
+        left, right = st.columns(2)
+        with left:
+            st.subheader("Price distribution")
+            fig = px.histogram(filtered, x="price", nbins=20, labels={"price":"Price (INR ₹)"}, template="plotly_dark" if dark else "plotly_white")
+            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color=theme["text"])
+            st.plotly_chart(fig, width="stretch", key="laptop_price_hist")
+        with right:
+            st.subheader("Specification score vs price")
+            fig = px.scatter(filtered, x="price", y="specs_score", color="graphics_card", hover_name="name", labels={"price":"Price (INR ₹)","specs_score":"Dataset spec score"}, template="plotly_dark" if dark else "plotly_white")
+            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color=theme["text"], legend_title_text="GPU")
+            st.plotly_chart(fig, width="stretch", key="laptop_score_scatter")
+        st.subheader("Most common graphics cards")
+        gpu_counts = filtered["graphics_card"].value_counts().head(10).rename_axis("Graphics card").reset_index(name="Laptop count")
+        if not gpu_counts.empty:
+            fig = px.bar(gpu_counts, x="Laptop count", y="Graphics card", orientation="h", template="plotly_dark" if dark else "plotly_white")
+            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color=theme["text"], yaxis={"categoryorder":"total ascending"})
+            st.plotly_chart(fig, width="stretch", key="laptop_gpu_bar")
+
+    with tab2:
+        st.subheader("Find laptops for your budget and workload")
+        st.caption("Recommendations rank matching records with transparent weighted heuristics based on the dataset's spec score, GPU VRAM, RAM, CPU threads and display size. This is not a trained ML prediction.")
+        with st.form("laptop_recommend_form"):
+            budget = st.number_input("Your maximum budget (INR ₹)", min_value=10000, max_value=2000000, value=150000, step=5000)
+            purpose = st.selectbox("Main workload", ["Gaming", "AI/ML", "3D Rendering", "Video Editing", "General use"])
+            min_ram = st.selectbox("Minimum RAM", [8,16,24,32,64], index=1)
+            min_vram = st.selectbox("Minimum dedicated GPU VRAM", [0,4,6,8,12,16,24], index=0)
+            gpu_pref = st.selectbox("GPU preference", ["Any","NVIDIA","AMD","Intel"])
+            count = st.slider("Number of recommendations", 3, 15, 8)
+            go = st.form_submit_button("Recommend laptops")
+        if go:
+            st.session_state.laptop_recs = recommend_gaming_laptops(budget, purpose, min_ram, min_vram, gpu_pref, count)
+        recs = st.session_state.get("laptop_recs", [])
+        if recs:
+            rec_df = pd.DataFrame(recs)
+            st.success(f"Found {len(rec_df)} matching recommendations.")
+            st.dataframe(rec_df[["name","price","specs_score","processor","graphics_card","VRAM(GB)","ram(GB)","display_resolution","recommendation_score"]], width="stretch", hide_index=True)
+            best = rec_df.iloc[0]
+            st.markdown("**Top ranked match:** " + str(best["name"]))
+            st.metric("Listed dataset price", f"₹{best['price']:,.0f}")
+        elif "laptop_recs" in st.session_state:
+            st.warning("No laptops match those constraints. Increase the budget or relax RAM/VRAM/GPU filters.")
+
+    with tab3:
+        st.subheader("Side-by-side laptop comparison")
+        options = laptops["name"].drop_duplicates().sort_values().tolist()
+        selected = st.multiselect("Choose up to four laptop models", options, max_selections=4)
+        if selected:
+            comp = laptops[laptops.name.isin(selected)].copy()
+            comp = comp[["name","price","specs_score","processor","graphics_card","VRAM(GB)","cores","thread","ram(GB)","ram_version","storage_size","storage_type","display_size","display_resolution","warranty"]]
+            st.dataframe(comp.set_index("name").T, width="stretch")
+            fig = px.bar(comp, x="name", y="specs_score", color="graphics_card", title="Dataset specification score comparison", template="plotly_dark" if dark else "plotly_white")
+            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color=theme["text"], xaxis_tickangle=-25)
+            st.plotly_chart(fig, width="stretch", key="laptop_compare_chart")
+        else:
+            st.info("Select two to four laptop models to compare their specifications.")
+    st.info("Data quality note: this is the supplied cleaned dataset. A specification score is reproduced as provided by the source; it is not independently benchmarked. Prices, availability and configurations may change.")
 
 # ----------------------------- Compatibility lab ---------------------------
 elif page == "Compatibility Lab":
