@@ -12,7 +12,7 @@ dark = st.session_state.tech_theme == "Dark"
 st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-:root{{--bg:{'#080d17' if dark else '#f3f6fb'};--surface:{'#111d30' if dark else '#fff'};--surface2:{'#15243a' if dark else '#f7f9fd'};--text:{'#edf4ff' if dark else '#17283f'};--muted:{'#91a4bf' if dark else '#60738c'};--line:{'#263954' if dark else '#dce5f0'};--accent:{'#61d5ff' if dark else '#087eae'};--sidebar:{'#0b1321' if dark else '#fff'};--input:{'#101c2d' if dark else '#fff'};}
+:root{{--bg:{'#080d17' if dark else '#f3f6fb'};--surface:{'#111d30' if dark else '#fff'};--surface2:{'#15243a' if dark else '#f7f9fd'};--text:{'#edf4ff' if dark else '#17283f'};--muted:{'#91a4bf' if dark else '#60738c'};--line:{'#263954' if dark else '#dce5f0'};--accent:{'#61d5ff' if dark else '#087eae'};--sidebar:{'#0b1321' if dark else '#fff'};--input:{'#101c2d' if dark else '#fff'};}}
 html,body,[class*="css"]{{font-family:'DM Sans',sans-serif}}
 .stApp{{background:radial-gradient(circle at 85% 0%,color-mix(in srgb,var(--accent) 10%,transparent),transparent 35%),var(--bg);color:var(--text)}}
 [data-testid="stSidebar"]{{background:var(--sidebar);border-right:1px solid var(--line)}} [data-testid="stSidebar"] *{{color:var(--text)}}
