@@ -1,0 +1,5 @@
+streamlit>=1.36
+pandas>=2.0
+plotly>=5.20
+mcp>=1.9.0,<2.0.0
+pytest>=8.0
