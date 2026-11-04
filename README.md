@@ -2,7 +2,7 @@
 
 **Designed & developed by ALI RAZA**
 
-A Streamlit dashboard and Python MCP server for gaming PC planning, workstation budget planning, sample hardware exploration, basic compatibility checks, PSU estimation, and MCP tool exposure.
+A Streamlit dashboard and Python MCP server for gaming PC planning, workstation budget planning, a 346-record gaming-laptop dataset explorer and recommendation engine, hardware comparisons, basic compatibility checks, PSU estimation, and MCP tool exposure.
 
 ## Deploy the dashboard free with Streamlit Community Cloud
 
@@ -37,7 +37,7 @@ pytest -q
 
 ## Features
 
-- Overview dashboard with component budget visualization.
+- Overview dashboard with component budget visualization.\n- Gaming Laptop Intelligence: explore and filter 346 cleaned laptop records, analyse prices/specification scores/GPUs, compare models and generate workload-aware recommendations.
 - Gaming PC Builder for budget planning.
 - Workstation Planner for AI/ML, 3D rendering, video editing and general workstation workloads.
 - Hardware Explorer with search and category filtering.
@@ -53,10 +53,10 @@ pytest -q
 - `pc_compatibility_checker`
 - `compare_hardware_specs`
 - `recommend_workload_build`
-- `search_sample_catalog`
+- `search_sample_catalog`\n- `gaming_laptop_recommender`\n- `gaming_laptop_dataset_summary`
 
 ## Data and limitations
 
-The included hardware catalogue is illustrative sample data. Product profiles and PKR prices are placeholders, not current retail listings. The app does not claim live pricing, stock, benchmark FPS or retailer integrations. Build allocations are heuristics, not verified parts lists. Validate exact models, BIOS support, RAM QVL, PSU connectors, cooling, dimensions and vendor documentation before purchase.
+The desktop hardware catalogue is illustrative sample data. The gaming-laptop module uses the uploaded `final_cleaned_dataset.csv` (346 records, 16 columns), bundled as `data/gaming_laptops.csv.gz.b64` to keep the repository compact. The source prices are Indian rupees (INR ₹), not PKR. Recommendations use transparent weighted heuristics; they are not a trained ML model. The dataset is not a live retailer feed. Product profiles and PKR prices are placeholders, not current retail listings. The app does not claim live pricing, stock, benchmark FPS or retailer integrations. Build allocations are heuristics, not verified parts lists. Validate exact models, BIOS support, RAM QVL, PSU connectors, cooling, dimensions and vendor documentation before purchase.
 
 No paid API key is required. An LLM-backed autonomous agent, live retailer adapters and live market feeds are not included in this demonstrator.
