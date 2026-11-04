@@ -1,6 +1,6 @@
 """TECHNOVA MCP server exposing the tested dashboard functions."""
 from mcp.server.fastmcp import FastMCP
-from technova.logic import recommend_pc_budget, estimate_psu, check_compatibility, compare_specs, build_plan, load_catalog
+from technova.logic import recommend_pc_budget, estimate_psu, check_compatibility, compare_specs, build_plan, load_catalog, load_gaming_laptops, recommend_gaming_laptops
 
 mcp = FastMCP("TECHNOVA Gaming & Workstation Intelligence")
 
@@ -40,6 +40,19 @@ def search_sample_catalog(query: str = "", category: str = "All") -> dict:
     products = load_catalog(); q = query.casefold().strip()
     items = [p for p in products if (not q or q in (p["name"] + " " + p["brand"] + " " + p["category"]).casefold()) and (category == "All" or p["category"] == category)]
     return {"count": len(items), "products": items, "notice": "Illustrative sample data only. No live price, stock or retailer data is claimed."}
+
+
+@mcp.tool()
+def gaming_laptop_recommender(max_budget_inr: float, workload: str = "Gaming", minimum_ram_gb: int = 8, minimum_vram_gb: int = 0, gpu_preference: str = "Any", limit: int = 10) -> dict:
+    """Recommend matching gaming laptops from the bundled cleaned dataset. Prices are INR, not live listings."""
+    products = recommend_gaming_laptops(max_budget_inr, workload, minimum_ram_gb, minimum_vram_gb, gpu_preference, limit)
+    return {"count": len(products), "currency": "INR", "recommendations": products, "method": "Transparent weighted heuristic; not a trained ML model.", "notice": "Dataset prices are supplied historical/listed values, not live retailer prices."}
+
+@mcp.tool()
+def gaming_laptop_dataset_summary() -> dict:
+    """Summarize the bundled gaming laptop dataset: count, price range, average price, GPUs and RAM options."""
+    df = load_gaming_laptops()
+    return {"records": int(len(df)), "currency": "INR", "min_price": int(df.price.min()), "median_price": int(df.price.median()), "max_price": int(df.price.max()), "average_price": round(float(df.price.mean()), 2), "median_spec_score": float(df.specs_score.median()), "gpu_profiles": int(df.graphics_card.nunique()), "ram_options_gb": sorted([int(x) for x in df["ram(GB)"].unique()]), "notice": "Based on the supplied cleaned dataset; not live market data."}
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")
