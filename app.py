@@ -98,7 +98,10 @@ div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hove
 hr { border-color: var(--line); }
 footer { visibility: hidden; }
 </style>
-""" % theme
+"""
+css = css.replace("%(bg)s", theme["bg"]).replace("%(surface)s", theme["surface"]).replace("%(surface2)s", theme["surface2"])
+css = css.replace("%(text)s", theme["text"]).replace("%(muted)s", theme["muted"]).replace("%(line)s", theme["line"])
+css = css.replace("%(accent)s", theme["accent"]).replace("%(sidebar)s", theme["sidebar"]).replace("%(input)s", theme["input"])
 st.markdown(css, unsafe_allow_html=True)
 
 # ----------------------------- Shared helpers -------------------------------
