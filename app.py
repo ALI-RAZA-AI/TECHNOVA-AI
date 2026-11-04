@@ -189,7 +189,7 @@ if page == "Overview":
     cols = st.columns(4)
     for col, label, value in zip(
         cols, ["Hardware profiles", "MCP tools", "Build domains", "Currency"],
-        [len(catalog), "6", "7", "PKR"]
+        [len(catalog), "8", "7", "PKR"]
     ):
         with col:
             st.metric(label, value)
@@ -439,6 +439,8 @@ elif page == "MCP Tools & Demo":
         "compare_hardware_specs": "Compare two user-supplied specification sets",
         "recommend_workload_build": "Workload-specific build planning",
         "search_sample_catalog": "Search the illustrative sample catalogue",
+        "gaming_laptop_recommender": "Recommend laptops from the uploaded dataset (INR)",
+        "gaming_laptop_dataset_summary": "Summarize the 346-record laptop dataset",
     }
     for name, description in descriptions.items():
         st.markdown(
@@ -448,7 +450,7 @@ elif page == "MCP Tools & Demo":
     tool = st.selectbox(
         "Try a tool",
         ["PC budget planner", "PSU calculator", "Compatibility checker",
-         "Compare specifications", "Workload build", "Search catalogue"],
+         "Compare specifications", "Workload build", "Search catalogue", "Gaming laptop recommender", "Laptop dataset summary"],
     )
     if tool == "PC budget planner":
         with st.form("mcp_budget_form"):
@@ -492,13 +494,25 @@ elif page == "MCP Tools & Demo":
             run = st.form_submit_button("Recommend workload build")
         if run:
             st.json(build_plan(amount, workload, priority))
-    else:
+    elif tool == "Search catalogue":
         with st.form("mcp_search_form"):
             term = st.text_input("Search catalogue", "NVIDIA")
             run = st.form_submit_button("Search hardware")
         if run:
             matches = [p for p in catalog if term.casefold() in (p["name"] + " " + p["brand"] + " " + p["category"]).casefold()]
             st.json(matches if matches else {"message": "No matching sample hardware."})
+    elif tool == "Gaming laptop recommender":
+        with st.form("mcp_laptop_form"):
+            laptop_budget = st.number_input("Maximum laptop budget (INR ₹)", 10000, 2000000, 150000, 5000)
+            laptop_workload = st.selectbox("Workload", ["Gaming", "AI/ML", "3D Rendering", "Video Editing"])
+            laptop_ram = st.selectbox("Minimum RAM (GB)", [8, 16, 24, 32, 64], index=1)
+            laptop_vram = st.selectbox("Minimum VRAM (GB)", [0, 4, 6, 8, 12, 16, 24])
+            run = st.form_submit_button("Recommend from dataset")
+        if run:
+            st.json({"currency": "INR", "recommendations": recommend_gaming_laptops(laptop_budget, laptop_workload, laptop_ram, laptop_vram), "method": "Weighted heuristic, not ML prediction."})
+    else:
+        laptops_data = load_gaming_laptops()
+        st.json({"records": len(laptops_data), "currency": "INR", "average_price": round(float(laptops_data.price.mean()), 2), "median_price": int(laptops_data.price.median()), "gpu_profiles": int(laptops_data.graphics_card.nunique()), "median_spec_score": float(laptops_data.specs_score.median())})
     st.divider()
     st.markdown("**Run the MCP server locally**")
     st.code("python -m technova.mcp_server", language="bash")
