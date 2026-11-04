@@ -1,0 +1,11 @@
+{
+  "notice": "Illustrative starter profiles; prices are placeholders, not live retail prices.",
+  "products": [
+    {"id":"gpu-profile-a","name":"GeForce RTX-class GPU profile","brand":"NVIDIA","category":"gpu","sample_price_pkr":180000,"specs":{"memory_gb":12,"memory_type":"GDDR6X","target_uses":["gaming","AI/ML","3D"]}},
+    {"id":"gpu-profile-b","name":"Radeon RX-class GPU profile","brand":"AMD","category":"gpu","sample_price_pkr":150000,"specs":{"memory_gb":16,"memory_type":"GDDR6","target_uses":["gaming","content creation"]}},
+    {"id":"cpu-profile-a","name":"Ryzen 7-class CPU profile","brand":"AMD","category":"cpu","sample_price_pkr":95000,"specs":{"cores":8,"threads":16,"socket":"AM5"}},
+    {"id":"cpu-profile-b","name":"Core i7-class CPU profile","brand":"Intel","category":"cpu","sample_price_pkr":110000,"specs":{"cores":16,"threads":24,"socket":"LGA1700"}},
+    {"id":"ram-profile-a","name":"DDR5 32GB memory kit profile","brand":"Generic","category":"ram","sample_price_pkr":30000,"specs":{"capacity_gb":32,"type":"DDR5"}},
+    {"id":"ssd-profile-a","name":"NVMe 1TB SSD profile","brand":"Generic","category":"storage","sample_price_pkr":22000,"specs":{"capacity_gb":1000,"interface":"NVMe"}}
+  ]
+}
