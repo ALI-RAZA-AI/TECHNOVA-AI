@@ -34,7 +34,7 @@ theme = {
     "surface2": "#17263b" if dark else "#f7faff",
     "text": "#edf4ff" if dark else "#17283f",
     "muted": "#a7b6ca" if dark else "#5c6f87",
-    "line": "#293c56" if dark else "#d9e3ef",
+    "line": "#293c56" if dark else "#c5d3e2",
     "accent": "#61d5ff" if dark else "#087eae",
     "sidebar": "#0b1321" if dark else "#ffffff",
     "input": "#17263b" if dark else "#ffffff",
@@ -95,7 +95,35 @@ div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hove
 [data-testid="stDataFrame"], [data-testid="stTable"] {
   border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
 }
-hr { border-color: var(--line); }
+
+/* Consistent borders and readable surfaces in both themes */
+[data-testid="stVerticalBlockBorderWrapper"],
+[data-testid="stExpander"],
+[data-testid="stPopover"],
+[data-testid="stAlert"],
+[data-testid="stDataFrame"],
+[data-testid="stTable"],
+[data-testid="stTabs"] [data-baseweb="tab-list"] {
+  border-color: var(--line) !important;
+}
+[data-testid="stExpander"], [data-testid="stPopover"] {
+  border: 1px solid var(--line) !important;
+  border-radius: 12px !important;
+}
+[data-baseweb="select"] > div,
+[data-baseweb="input"] > div,
+[data-testid="stNumberInput"] button,
+[data-testid="stTextInput"] input,
+[data-testid="stTextArea"] textarea {
+  border: 1px solid var(--line) !important;
+  outline-color: var(--line) !important;
+  box-shadow: none !important;
+}
+[data-testid="stMetric"], .panel, .hero {
+  border-color: var(--line) !important;
+}
+hr { border-top: 1px solid var(--line) !important; }
+
 footer { visibility: hidden; }
 </style>
 """
